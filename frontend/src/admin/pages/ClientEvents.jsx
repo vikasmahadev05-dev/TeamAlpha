@@ -1,61 +1,71 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, Image as ImageIcon, FolderOpen, Calendar, ChevronRight, MoreVertical, Loader2 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Plus, FolderOpen, Calendar, MoreVertical, Loader2, ArrowLeft, Image as ImageIcon, ChevronRight } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Components
-import CreateGalleryModal from "../components/gallery/CreateGalleryModal";
-import EditClientModal from "../components/gallery/EditClientModal";
+import CreateEventModal from "../components/gallery/CreateEventModal";
+import EditEventModal from "../components/gallery/EditEventModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function SmartGallery() {
+export default function ClientEvents() {
+  const { id: clientId } = useParams();
   const navigate = useNavigate();
-  const [galleries, setGalleries] = useState([]);
+  const [client, setClient] = useState(null);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState(null);
+  const [editingEvent, setEditingEvent] = useState(null);
 
   useEffect(() => {
-    fetchGalleries();
-  }, []);
+    fetchClientAndEvents();
+  }, [clientId]);
 
-  const fetchGalleries = async () => {
+  const fetchClientAndEvents = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_BASE_URL}/api/drive-gallery`, {
+      
+      // Fetch Client Info
+      const clientRes = await axios.get(`${API_BASE_URL}/api/drive-gallery/${clientId}`, {
         headers: { 'x-auth-token': token }
       });
-      setGalleries(res.data);
+      setClient(clientRes.data);
+
+      // Fetch Events
+      const eventsRes = await axios.get(`${API_BASE_URL}/api/drive-gallery/${clientId}/events`, {
+        headers: { 'x-auth-token': token }
+      });
+      setEvents(eventsRes.data);
     } catch (err) {
-      toast.error("Failed to load clients.");
+      toast.error("Failed to load events.");
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteGallery = async (e, id) => {
+  const deleteEvent = async (e, eventId) => {
     e.stopPropagation();
-    if (!window.confirm("Permanently remove this client and all associated events?")) return;
+    if (!window.confirm("Remove this event?")) return;
     
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/api/drive-gallery/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/drive-gallery/events/${eventId}`, {
         headers: { 'x-auth-token': token }
       });
-      setGalleries(prev => prev.filter(g => g._id !== id));
-      toast.success("Client removed.");
+      setEvents(prev => prev.filter(ev => ev._id !== eventId));
+      toast.success("Event removed.");
     } catch (err) {
       toast.error("Delete failed.");
     }
   };
 
-  const handleEdit = (e, client) => {
+  const handleEdit = (e, event) => {
     e.stopPropagation();
-    setEditingClient(client);
+    setEditingEvent(event);
   };
 
   return (
@@ -63,9 +73,17 @@ export default function SmartGallery() {
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
-        <div className="space-y-1">
-          <h1 className="page-title text-4xl text-[#2d2d2d]">Client Collections</h1>
-          <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#cfe8d5] ml-1">Parent Repositories</p>
+        <div className="space-y-4">
+          <button 
+            onClick={() => navigate('/admin/gallery')}
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#8a8a8a] hover:text-[#2d2d2d] transition-all"
+          >
+            <ArrowLeft size={14} /> Back to Clients
+          </button>
+          <div className="space-y-1">
+            <h1 className="page-title text-4xl text-[#2d2d2d]">{client?.name || "Client Events"}</h1>
+            <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#cfe8d5] ml-1">Event Collections</p>
+          </div>
         </div>
 
         <button 
@@ -73,21 +91,21 @@ export default function SmartGallery() {
           className="add-btn flex items-center gap-3 px-8 py-4 shadow-xl shadow-[#cfe8d5]/40"
         >
           <Plus size={18} />
-          <span className="text-xs font-bold uppercase tracking-widest text-[#2d2d2d]">Add New Client</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#2d2d2d]">Add New Event</span>
         </button>
       </div>
 
-      {/* Collections Grid */}
+      {/* Events Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-          {[1,2,3,4].map(n => <div key={n} className="h-96 bg-white/40 animate-pulse rounded-[40px] border border-white/60" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {[1,2,3].map(n => <div key={n} className="h-80 bg-white/40 animate-pulse rounded-[40px] border border-white/60" />)}
         </div>
-      ) : galleries.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-          {galleries.map((gallery, idx) => (
+      ) : events.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {events.map((event, idx) => (
             <motion.div
               layout
-              key={gallery._id}
+              key={event._id}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
@@ -96,13 +114,13 @@ export default function SmartGallery() {
                 ease: [0.22, 1, 0.36, 1]
               }}
               whileHover={{ y: -12 }}
-              onClick={() => navigate(`/admin/gallery/${gallery._id}`)}
+              onClick={() => navigate(`/admin/gallery/event/${event._id}`)}
               className="group relative aspect-[3.5/4.5] rounded-[32px] overflow-hidden bg-black shadow-2xl transition-all duration-500 cursor-pointer"
             >
               {/* Full Image Background */}
               <motion.img 
-                src={gallery.thumbnail} 
-                alt={gallery.name}
+                src={event.thumbnail} 
+                alt={event.name}
                 whileHover={{ scale: 1.15 }}
                 transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700"
@@ -115,18 +133,18 @@ export default function SmartGallery() {
               {/* Glassmorphic Management Controls (appear on hover) */}
               <div className="absolute top-6 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 delay-100">
                 <button 
-                  onClick={(e) => handleEdit(e, gallery)}
+                  onClick={(e) => handleEdit(e, event)}
                   className="p-3 bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/25 text-white rounded-2xl transition-all shadow-lg"
-                  title="Edit Collection"
+                  title="Edit Event"
                 >
                   <MoreVertical size={16} />
                 </button>
                 <button 
-                  onClick={(e) => deleteGallery(e, gallery._id)}
+                  onClick={(e) => deleteEvent(e, event._id)}
                   className="p-3 bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-red-500/30 text-white hover:text-red-300 rounded-2xl transition-all shadow-lg"
-                  title="Delete Collection"
+                  title="Remove Event"
                 >
-                  <Plus size={16} className="rotate-45" />
+                   <Plus size={16} className="rotate-45" />
                 </button>
               </div>
 
@@ -138,18 +156,18 @@ export default function SmartGallery() {
                 >
                   <span className="text-[10px] text-white/90 group-hover:text-white font-bold uppercase tracking-[0.2em] flex items-center gap-2">
                     <ImageIcon size={10} className="mb-0.5" />
-                    Client Collection
+                    Event Collection
                   </span>
                 </motion.div>
 
                 <h3 className="text-3xl font-bold text-white tracking-tight mb-2 group-hover:text-[#cfe8d5] transition-colors duration-500">
-                  {gallery.name}
+                  {event.name}
                 </h3>
 
                 <div className="flex items-center gap-3 text-white/50 group-hover:text-white/80 transition-colors duration-500">
                   <Calendar size={12} className="shrink-0" />
                   <span className="text-[10px] font-bold uppercase tracking-widest pt-0.5">
-                    Updated {new Date(gallery.createdAt).toLocaleDateString()}
+                    {new Date(event.eventDate || event.createdAt).toLocaleDateString()}
                   </span>
                   <div className="h-px flex-1 bg-white/10 group-hover:bg-white/20 transition-all" />
                   <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-500" />
@@ -159,29 +177,30 @@ export default function SmartGallery() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-40 animate-in fade-in zoom-in duration-1000">
-           <div className="avatar !w-24 !h-24 !rounded-[40px] mb-8 bg-linear-to-br from-[#f6e6b4] to-[#cfe8d5]/30 flex items-center justify-center">
-              <FolderOpen size={40} className="text-[#8a8a8a]" strokeWidth={1} />
+        <div className="flex flex-col items-center justify-center py-32 animate-in fade-in zoom-in duration-1000">
+           <div className="avatar !w-20 !h-20 !rounded-[32px] mb-6 bg-linear-to-br from-[#cfe8d5] to-transparent flex items-center justify-center">
+              <ImageIcon size={32} className="text-[#8a8a8a]" strokeWidth={1} />
            </div>
-           <h3 className="page-title !text-2xl text-[#8a8a8a]">No client collections yet.</h3>
-           <p className="text-[10px] uppercase tracking-widest font-bold text-[#8a8a8a] mt-2">Start by creating your first client portal</p>
+           <h3 className="page-title !text-xl text-[#8a8a8a]">No events found for this client.</h3>
+           <p className="text-[10px] uppercase tracking-widest font-bold text-[#8a8a8a] mt-2">Start by creating your first event</p>
         </div>
       )}
 
-      {/* Gallery Form Modal */}
-      <CreateGalleryModal 
+      {/* Event Form Modal */}
+      <CreateEventModal 
         isOpen={isCreateOpen} 
         onClose={() => setIsCreateOpen(false)}
-        onGalleryCreated={(newGal) => {
-          setGalleries(prev => [newGal, ...prev]);
+        clientId={clientId}
+        onEventCreated={(newEvent) => {
+          setEvents(prev => [newEvent, ...prev]);
         }}
       />
 
-      <EditClientModal
-        isOpen={!!editingClient}
-        onClose={() => setEditingClient(null)}
-        client={editingClient}
-        onSuccess={fetchGalleries}
+      <EditEventModal
+        isOpen={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
+        event={editingEvent}
+        onSuccess={fetchClientAndEvents}
       />
 
     </div>
