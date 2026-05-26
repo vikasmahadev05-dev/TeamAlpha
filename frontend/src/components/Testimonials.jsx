@@ -65,17 +65,17 @@ const Testimonials = () => {
                 >
                     {isEditMode ? (
                         <>
-                            <input
-                                type="text"
+                            <textarea
                                 value={title}
                                 onChange={(e) => updateSection('testimonials', { title: e.target.value })}
-                                className="text-4xl md:text-5xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl bg-transparent"
+                                className="text-4xl md:text-5xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl bg-transparent resize-none"
+                                rows={2}
                             />
-                            <input
-                                type="text"
+                            <textarea
                                 value={subtitle}
                                 onChange={(e) => updateSection('testimonials', { subtitle: e.target.value })}
-                                className="text-gray-600 font-light tracking-widest uppercase text-xs text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm bg-transparent"
+                                className="text-gray-600 font-light tracking-widest uppercase text-xs text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm bg-transparent resize-none"
+                                rows={2}
                             />
                         </>
                     ) : (

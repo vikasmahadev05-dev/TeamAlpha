@@ -48,11 +48,11 @@ const About = () => {
                     className="flex flex-col gap-4 items-center"
                 >
                     {isEditMode ? (
-                        <input
-                            type="text"
+                        <textarea
                             value={title}
                             onChange={(e) => updateSection('about', { title: e.target.value })}
-                            className="text-4xl md:text-5xl font-serif mb-4 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full"
+                            className="text-4xl md:text-5xl font-serif mb-4 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full resize-none"
+                            rows={2}
                         />
                     ) : (
                         <h2 className="text-4xl md:text-5xl font-serif mb-8 text-[#1C1C1C]">{title}</h2>
@@ -106,13 +106,13 @@ const About = () => {
                                     type="text"
                                     value={member.name}
                                     onChange={(e) => handleTeamUpdate(idx, 'name', e.target.value)}
-                                    className="text-2xl font-serif text-center border-b border-dashed border-gray-400 focus:outline-none"
+                                    className="text-2xl font-serif text-center border-b border-dashed border-gray-400 focus:outline-none w-full"
                                 />
                                 <input
                                     type="text"
                                     value={member.role}
                                     onChange={(e) => handleTeamUpdate(idx, 'role', e.target.value)}
-                                    className="text-sm text-gray-500 uppercase tracking-widest text-center border-b border-dashed border-gray-400 focus:outline-none"
+                                    className="text-sm text-gray-500 uppercase tracking-widest text-center border-b border-dashed border-gray-400 focus:outline-none w-full"
                                 />
                             </div>
                         ) : (

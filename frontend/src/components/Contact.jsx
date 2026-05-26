@@ -41,17 +41,17 @@ const Contact = () => {
                 >
                     {isEditMode ? (
                         <>
-                            <input
-                                type="text"
+                            <textarea
                                 value={title}
                                 onChange={(e) => updateSection('contact', { title: e.target.value })}
-                                className="text-3xl md:text-4xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm"
+                                className="text-3xl md:text-4xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm resize-none"
+                                rows={2}
                             />
-                            <input
-                                type="text"
+                            <textarea
                                 value={subtitle}
                                 onChange={(e) => updateSection('contact', { subtitle: e.target.value })}
-                                className="text-gray-600 font-light tracking-widest uppercase text-xs text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm"
+                                className="text-gray-600 font-light tracking-widest uppercase text-xs text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm resize-none"
+                                rows={2}
                             />
                         </>
                     ) : (

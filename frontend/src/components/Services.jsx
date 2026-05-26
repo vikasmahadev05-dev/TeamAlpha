@@ -59,11 +59,11 @@ const Services = () => {
                 <div className="text-center mb-20 flex flex-col gap-2 items-center">
                     {isEditMode ? (
                         <>
-                            <input
-                                type="text"
+                            <textarea
                                 value={title}
                                 onChange={(e) => updateSection('services', { title: e.target.value })}
-                                className="text-4xl md:text-5xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl"
+                                className="text-4xl md:text-5xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl resize-none"
+                                rows={2}
                             />
                             <textarea
                                 value={subtitle}
@@ -109,11 +109,11 @@ const Services = () => {
                             >
                                 {isEditMode ? (
                                     <>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             value={service.title}
                                             onChange={(e) => handleServiceUpdate(index, 'title', e.target.value)}
-                                            className="text-3xl font-serif border-b border-dashed border-gray-400 focus:outline-none w-full"
+                                            className="text-3xl font-serif border-b border-dashed border-gray-400 focus:outline-none w-full resize-none"
+                                            rows={2}
                                         />
                                         <textarea
                                             value={service.desc}
@@ -137,17 +137,17 @@ const Services = () => {
                 <div className="mt-32 text-center max-w-3xl mx-auto bg-[#F7F5F2] p-12 rounded-sm shadow-sm flex flex-col items-center gap-3">
                     {isEditMode ? (
                         <>
-                            <input
-                                type="text"
+                            <textarea
                                 value={vivahasyaTitle}
                                 onChange={(e) => updateSection('services', { vivahasyaTitle: e.target.value })}
-                                className="text-3xl font-serif text-center bg-transparent border-b border-dashed border-gray-400 focus:outline-none w-full"
+                                className="text-3xl font-serif text-center bg-transparent border-b border-dashed border-gray-400 focus:outline-none w-full resize-none"
+                                rows={2}
                             />
-                            <input
-                                type="text"
+                            <textarea
                                 value={vivahasyaSubtitle}
                                 onChange={(e) => updateSection('services', { vivahasyaSubtitle: e.target.value })}
-                                className="text-sm font-sans uppercase tracking-widest text-gray-500 text-center bg-transparent border-b border-dashed border-gray-400 focus:outline-none w-full"
+                                className="text-sm font-sans uppercase tracking-widest text-gray-500 text-center bg-transparent border-b border-dashed border-gray-400 focus:outline-none w-full resize-none"
+                                rows={2}
                             />
                             <textarea
                                 value={vivahasyaText}

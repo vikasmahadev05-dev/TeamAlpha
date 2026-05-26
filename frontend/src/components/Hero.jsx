@@ -39,11 +39,11 @@ const Hero = () => {
             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-20 flex flex-col gap-4 items-center">
                 {isEditMode ? (
                     <>
-                        <input
-                            type="text"
+                        <textarea
                             value={title}
                             onChange={(e) => updateSection('hero', { title: e.target.value })}
-                            className="text-4xl md:text-6xl lg:text-7xl font-serif text-white mb-2 bg-black/30 border border-dashed border-gray-400 p-2 focus:outline-none w-full text-center"
+                            className="text-4xl md:text-6xl lg:text-7xl font-serif text-white mb-2 bg-black/30 border border-dashed border-gray-400 p-2 focus:outline-none w-full text-center resize-none"
+                            rows={2}
                         />
                         <textarea
                             value={subtitle}
