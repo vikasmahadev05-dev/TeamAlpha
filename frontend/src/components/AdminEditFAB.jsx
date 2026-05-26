@@ -2,12 +2,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useLandingPage } from '../context/LandingPageContext';
 import { Edit3, Save, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const AdminEditFAB = () => {
     const { user } = useAuth();
     const { isEditMode, setIsEditMode, saveConfig, config } = useLandingPage();
+    const location = useLocation();
 
-    if (user?.role !== 'admin') return null;
+    if (user?.role !== 'admin' || location.pathname !== '/') return null;
 
     const handleSave = () => {
         saveConfig(config);
