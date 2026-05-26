@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function (req, res, next) {
+const auth = function (req, res, next) {
     // Get token from header
     let token = req.header('x-auth-token');
 
@@ -28,3 +28,13 @@ module.exports = function (req, res, next) {
         res.status(401).json({ msg: `Token is not valid: ${err.message}` });
     }
 };
+
+const isAdmin = function (req, res, next) {
+    if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ msg: 'Not authorized as an admin' });
+    }
+    next();
+};
+
+module.exports = auth; // default export for backward compatibility
+module.exports.isAdmin = isAdmin; // export isAdmin explicitly

@@ -1,0 +1,15 @@
+{
+  "name": "team-alpha",
+  "version": "1.0.0",
+  "description": "Full stack photography CRM and Gallery",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "cd frontend && npm install && npm run build",
+    "install-backend": "cd backend && npm install",
+    "render-postbuild": "npm run build && npm run install-backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -4,6 +4,9 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
 let compression;
 try {
     compression = require('compression');
@@ -28,6 +31,12 @@ const auth = require('./middleware/auth');
 const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
+
+// Security Headers
+app.use(helmet({
+    crossOriginResourcePolicy: false, // allow images to be served across domains
+}));
+
 app.use(compression()); // Compress all responses
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
@@ -41,7 +50,22 @@ app.set('onlineUsers', onlineUsers);
 // CRITICAL: Attach io instance so routes can access it for real-time broadcasts
 app.set('io', io);
 
-app.use(express.json());
+// Payload Size Limit and JSON Parsing
+app.use(express.json({ limit: '10mb' }));
+
+// Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Global Rate Limiting
+const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 1000 requests per windowMs
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', globalLimiter);
+
 const allowedOrigins = [
     "https://team-alpha-d64k.onrender.com",
     process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : null
@@ -427,6 +451,7 @@ app.use('/api/google-sheets', require('./routes/googleSheetRoutes'));
 app.use('/api/media', require('./routes/media'));
 app.use('/api/drive-gallery', require('./routes/driveGalleryRoutes'));
 app.use('/api/admin-users', require('./routes/adminUserRoutes'));
+app.use('/api/landing-page', require('./routes/landingPage'));
 
 // --- Standalone API Configuration ---
 // Root route for initial verification

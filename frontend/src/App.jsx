@@ -18,6 +18,8 @@ const AuthPage = lazy(() => import('./components/AuthPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 import Breadcrumbs from './components/common/Breadcrumbs';
 import PageTransition from './components/common/PageTransition';
+import { LandingPageProvider } from './context/LandingPageContext';
+import AdminEditFAB from './components/AdminEditFAB';
 
 // Portal imports
 import ClientDashboard from './pages/client/ClientDashboard';
@@ -127,58 +129,61 @@ function App() {
   const location = useLocation();
 
   return (
-    <div className="font-sans text-[#1C1C1C] bg-[#F7F5F2] min-h-screen selection:bg-black selection:text-white">
-      <Toaster position="top-right" />
-      <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl">Loading...</div>}>
-        <AnimatePresence mode="wait">
-          <Routes location={location}>
-            {/* Main Website Routes */}
-            <Route path="/" element={
-              <>
-                <Navbar />
-                <Hero />
-                <About />
-                <Services />
-                <Gallery />
-                <Testimonials />
-                <Contact />
-                <Footer />
-              </>
-            } />
-            <Route path="/quote" element={<><Navbar /><GetQuote /><Footer /></>} />
-            <Route path="/auth" element={<AuthPage />} />
+    <LandingPageProvider>
+      <div className="font-sans text-[#1C1C1C] bg-[#F7F5F2] min-h-screen selection:bg-black selection:text-white">
+        <Toaster position="top-right" />
+        <AdminEditFAB />
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl">Loading...</div>}>
+          <AnimatePresence mode="wait">
+            <Routes location={location}>
+              {/* Main Website Routes */}
+              <Route path="/" element={
+                <>
+                  <Navbar />
+                  <Hero />
+                  <About />
+                  <Services />
+                  <Gallery />
+                  <Testimonials />
+                  <Contact />
+                  <Footer />
+                </>
+              } />
+              <Route path="/quote" element={<><Navbar /><GetQuote /><Footer /></>} />
+              <Route path="/auth" element={<AuthPage />} />
 
-            {/* Protected Portal Routes (Clients) */}
-            <Route element={<ProtectedRoute allowedRoles={['client']} />}>
-              <Route path="/portal" element={<PortalLayout />}>
-                <Route index element={<ClientDashboard />} />
-                <Route path="gallery" element={<ClientGallery />} />
-                <Route path="chats" element={<Chats />} />
-                <Route path="cloud" element={<Cloud />} />
+              {/* Protected Portal Routes (Clients) */}
+              <Route element={<ProtectedRoute allowedRoles={['client']} />}>
+                <Route path="/portal" element={<PortalLayout />}>
+                  <Route index element={<ClientDashboard />} />
+                  <Route path="gallery" element={<ClientGallery />} />
+                  <Route path="chats" element={<Chats />} />
+                  <Route path="cloud" element={<Cloud />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Protected Admin Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="crm" element={<AdminCRM />} />
-                <Route path="gallery" element={<AdminSmartGallery />} />
-                <Route path="gallery/:id" element={<AdminClientEvents />} />
-                <Route path="gallery/event/:eventId" element={<AdminDriveGalleryDetail />} />
-                <Route path="finance" element={<AdminFinance />} />
-                <Route path="calendar" element={<AdminCalendarPage />} />
-                <Route path="activity-log" element={<AdminActivityLog />} />
-                <Route path="chats" element={<AdminChats />} />
-                <Route path="users" element={<AdminUserManagement />} />
+              {/* Protected Admin Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="crm" element={<AdminCRM />} />
+                  <Route path="gallery" element={<AdminSmartGallery />} />
+                  <Route path="gallery/:id" element={<AdminClientEvents />} />
+                  <Route path="gallery/event/:eventId" element={<AdminDriveGalleryDetail />} />
+                  <Route path="finance" element={<AdminFinance />} />
+                  <Route path="calendar" element={<AdminCalendarPage />} />
+                  <Route path="activity-log" element={<AdminActivityLog />} />
+                  <Route path="chats" element={<AdminChats />} />
+                  <Route path="users" element={<AdminUserManagement />} />
+                </Route>
               </Route>
-            </Route>
-            {/* Catch-All Route for invalid URLs */}
-            <Route path="*" element={<AuthPage />} />
-          </Routes>
-        </AnimatePresence>
-      </Suspense>
-    </div>
+              {/* Catch-All Route for invalid URLs */}
+              <Route path="*" element={<AuthPage />} />
+            </Routes>
+          </AnimatePresence>
+        </Suspense>
+      </div>
+    </LandingPageProvider>
   );
 }
 

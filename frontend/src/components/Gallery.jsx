@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Grid, LayoutTemplate, Loader2, ImageOff } from 'lucide-react';
+import { X, Grid, LayoutTemplate, Loader2, ImageOff, Trash2, Plus } from 'lucide-react';
+import { useLandingPage } from '../context/LandingPageContext';
+import ImageUploadInput from './ImageUploadInput';
+import SectionColorPicker from './SectionColorPicker';
 
 // Dynamic imports for all categories (Lazy loaded)
 const localImages = {
@@ -25,7 +28,7 @@ const defaultImages = {
     "Mehendi": "/assets/services/haldi.jpg"
 };
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
     { id: "Wedding", label: "Twinkling Knots", tag: "wedding" },
     { id: "Engagement", label: "Engagement", tag: "engagement" },
     { id: "Pre Wedding", label: "Pre Wedding", tag: "pre_wedding" },
@@ -35,23 +38,33 @@ const CATEGORIES = [
 ];
 
 const Gallery = () => {
+    const { config, isEditMode, updateSection } = useLandingPage();
+    const galleryData = config?.gallery || {};
+
     const [selectedAlbum, setSelectedAlbum] = useState(null);
     const [viewMode, setViewMode] = useState('grid');
     const [loading, setLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState("All");
 
+    const title = galleryData.title !== undefined ? galleryData.title : "Our Portfolio";
+    const subtitle = galleryData.subtitle !== undefined ? galleryData.subtitle : "Capturing moments that last forever. Every detail, every emotion, preserved beautifully.";
+    const bgColor = galleryData.bgColor || '#ffffff';
+    
+    // Dynamic Categories
+    const categories = galleryData.categories && galleryData.categories.length > 0 ? galleryData.categories : DEFAULT_CATEGORIES;
+
     // get images for a category (Local -> Default)
     const getImages = (id) => {
         const local = localImages[id];
         if (local && local.length > 0) return local;
-
         return defaultImages[id] ? [defaultImages[id]] : [];
     };
 
-    // get cover image (Local Cover -> Local Album[0] -> Default)
-    const getCover = (id) => {
-        const normalizedId = id.toLowerCase().replace(' ', '_');
+    // get cover image (Uploaded Cover -> Local Cover -> Local Album[0] -> Default)
+    const getCover = (cat) => {
+        if (cat.coverImg) return cat.coverImg;
 
+        const normalizedId = cat.id.toLowerCase().replace(' ', '_');
         const key = Object.keys(localCovers).find(k => {
             const filename = k.split('/').pop().split('.')[0];
             return filename.toLowerCase() === normalizedId;
@@ -59,8 +72,8 @@ const Gallery = () => {
 
         if (key) return localCovers[key];
 
-        const images = getImages(id);
-        return images.length > 0 ? images[0] : (defaultImages[id] || '');
+        const images = getImages(cat.id);
+        return images.length > 0 ? images[0] : (defaultImages[cat.id] || '');
     };
 
     const openAlbum = (category) => setSelectedAlbum(category);
@@ -79,87 +92,187 @@ const Gallery = () => {
 
     // Filter Logic
     const filteredCategories = activeFilter === "All"
-        ? CATEGORIES
-        : CATEGORIES.filter(cat => cat.id === activeFilter);
+        ? categories
+        : categories.filter(cat => cat.id === activeFilter);
+
+    // Edit functions
+    const updateCategory = (index, field, value) => {
+        const newCats = [...categories];
+        newCats[index] = { ...newCats[index], [field]: value };
+        // automatically sync id with label if id matches old label
+        if (field === 'label' && newCats[index].id === categories[index].label) {
+            newCats[index].id = value;
+        }
+        updateSection('gallery', { categories: newCats });
+    };
+
+    const deleteCategory = (index) => {
+        const newCats = [...categories];
+        newCats.splice(index, 1);
+        updateSection('gallery', { categories: newCats });
+    };
+
+    const addCategory = () => {
+        const newCats = [...categories, { id: "New Category", label: "New Category", tag: "new_tag" }];
+        updateSection('gallery', { categories: newCats });
+    };
 
     return (
-        <section id="gallery" className="py-24 px-6 max-w-7xl mx-auto min-h-screen">
-            <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-serif mb-6 text-gray-900">Our Portfolio</h2>
-                <p className="text-gray-600 font-light mb-10 max-w-2xl mx-auto">
-                    Capturing moments that last forever. Every detail, every emotion, preserved beautifully.
-                </p>
-
-                {/* Filter Buttons */}
-                <div className="flex flex-wrap justify-center gap-3 mb-12">
-                    <button
-                        onClick={() => setActiveFilter("All")}
-                        className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeFilter === "All" ? 'bg-black text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    >
-                        All Works
-                    </button>
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat.id}
-                            onClick={() => setActiveFilter(cat.id)}
-                            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeFilter === cat.id ? 'bg-black text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                        >
-                            {cat.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {loading ? (
-                <div className="flex flex-col items-center justify-center min-h-[40vh] text-gray-500">
-                    <Loader2 size={48} className="animate-spin mb-4 text-black" />
-                    <p className="text-lg font-light tracking-wide animate-pulse">Curating your memories...</p>
-                </div>
-            ) : (
-                <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <AnimatePresence>
-                        {filteredCategories.map((cat, idx) => {
-                            const coverImg = getCover(cat.id);
-                            return (
-                                <motion.div
-                                    layout
-                                    key={cat.id}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.5, delay: idx * 0.05 }}
-                                    className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-2xl cursor-pointer bg-gray-50 border border-gray-100 transition-all duration-500 hover:-translate-y-2"
-                                    onClick={() => openAlbum(cat.id)}
-                                >
-                                    {coverImg ? (
-                                        <div className="w-full h-[400px] overflow-hidden">
-                                            <img
-                                                src={coverImg}
-                                                alt={cat.label}
-                                                loading="lazy"
-                                                className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div className="w-full h-[400px] flex flex-col items-center justify-center text-gray-400">
-                                            <ImageOff size={48} className="mb-4 opacity-50 block mx-auto" />
-                                            <span className="text-sm">No Cover Found</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-end pb-10">
-                                        <h3 className="text-white font-serif text-3xl mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">{cat.label}</h3>
-                                        <p className="text-white/80 font-sans text-sm tracking-widest uppercase border-b border-white/40 pb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">View Album</p>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                </motion.div>
+        <section id="gallery" className="py-24 px-6 relative min-h-screen" style={{ backgroundColor: bgColor }}>
+            {isEditMode && (
+                <SectionColorPicker 
+                    value={bgColor} 
+                    onChange={(color) => updateSection('gallery', { bgColor: color })} 
+                />
             )}
+            <div className="max-w-7xl mx-auto relative">
+                <div className="text-center mb-16 flex flex-col gap-2 items-center">
+                    {isEditMode ? (
+                        <>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => updateSection('gallery', { title: e.target.value })}
+                                className="text-4xl md:text-5xl font-serif mb-4 text-gray-900 text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl bg-transparent"
+                            />
+                            <textarea
+                                value={subtitle}
+                                onChange={(e) => updateSection('gallery', { subtitle: e.target.value })}
+                                className="text-gray-600 font-light mb-10 max-w-2xl mx-auto text-center border-2 border-dashed border-gray-400 focus:outline-none w-full bg-transparent p-2"
+                                rows={2}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="text-4xl md:text-5xl font-serif mb-6 text-gray-900">{title}</h2>
+                            <p className="text-gray-600 font-light mb-10 max-w-2xl mx-auto">{subtitle}</p>
+                        </>
+                    )}
 
-            {/* Album Modal */}
-            <AnimatePresence>
-                {selectedAlbum && (
+                    {/* Filter Buttons */}
+                    <div className="flex flex-wrap justify-center gap-3 mb-12">
+                        <button
+                            onClick={() => setActiveFilter("All")}
+                            className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeFilter === "All" ? 'bg-black text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        >
+                            All Works
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setActiveFilter(cat.id)}
+                                className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeFilter === cat.id ? 'bg-black text-white shadow-[0_4px_14px_0_rgba(0,0,0,0.39)]' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] text-gray-500">
+                        <Loader2 size={48} className="animate-spin mb-4 text-black" />
+                        <p className="text-lg font-light tracking-wide animate-pulse">Curating your memories...</p>
+                    </div>
+                ) : (
+                    <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <AnimatePresence>
+                            {filteredCategories.map((cat, idx) => {
+                                const coverImg = getCover(cat);
+                                // The true index in the 'categories' array, necessary for updates since 'filteredCategories' might only have 1 item
+                                const realIndex = categories.findIndex(c => c.id === cat.id);
+                                
+                                return (
+                                    <motion.div
+                                        layout
+                                        key={cat.id}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.5, delay: idx * 0.05 }}
+                                        className={`group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-2xl bg-gray-50 border border-gray-100 transition-all duration-500 ${isEditMode ? '' : 'cursor-pointer hover:-translate-y-2'}`}
+                                        onClick={() => !isEditMode && openAlbum(cat.id)}
+                                    >
+                                        {isEditMode && (
+                                            <div className="absolute top-2 left-2 z-10 bg-white/90 p-2 rounded shadow flex flex-col gap-1 w-[90%]">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="text-[10px] font-bold text-gray-800">Cover Image:</span>
+                                                    <button onClick={() => deleteCategory(realIndex)} className="text-red-500 hover:text-red-700 bg-white rounded-full p-1 shadow border border-red-200" title="Delete Category">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                                <ImageUploadInput 
+                                                    value={cat.coverImg} 
+                                                    onChange={(url) => updateCategory(realIndex, 'coverImg', url)}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {coverImg ? (
+                                            <div className="w-full h-[400px] overflow-hidden">
+                                                <img
+                                                    src={coverImg}
+                                                    alt={cat.label}
+                                                    loading="lazy"
+                                                    className={`w-full h-full object-cover transition-transform duration-700 ease-in-out ${isEditMode ? '' : 'group-hover:scale-110'}`}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full h-[400px] flex flex-col items-center justify-center text-gray-400">
+                                                <ImageOff size={48} className="mb-4 opacity-50 block mx-auto" />
+                                                <span className="text-sm">No Cover Found</span>
+                                            </div>
+                                        )}
+
+                                        {isEditMode ? (
+                                            <div className="absolute bottom-0 w-full bg-black/70 p-4 flex flex-col gap-2 backdrop-blur-sm z-20">
+                                                <input 
+                                                    type="text"
+                                                    value={cat.label}
+                                                    onChange={(e) => updateCategory(realIndex, 'label', e.target.value)}
+                                                    className="bg-transparent text-white font-serif text-2xl border-b border-white/50 focus:outline-none placeholder-white/50"
+                                                    placeholder="Category Label"
+                                                />
+                                                <input 
+                                                    type="text"
+                                                    value={cat.tag}
+                                                    onChange={(e) => updateCategory(realIndex, 'tag', e.target.value)}
+                                                    className="bg-transparent text-white/80 font-mono text-xs uppercase tracking-widest border-b border-white/30 focus:outline-none placeholder-white/50"
+                                                    placeholder="Image Tag (e.g. wedding)"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-end pb-10">
+                                                <h3 className="text-white font-serif text-3xl mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">{cat.label}</h3>
+                                                <p className="text-white/80 font-sans text-sm tracking-widest uppercase border-b border-white/40 pb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">View Album</p>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+
+                        {/* Add New Category Button */}
+                        {isEditMode && activeFilter === "All" && (
+                            <motion.div
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 hover:border-black hover:bg-gray-50 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer min-h-[400px]"
+                                onClick={addCategory}
+                            >
+                                <div className="bg-gray-100 p-4 rounded-full mb-4 group-hover:bg-black group-hover:text-white transition-colors duration-300">
+                                    <Plus size={32} />
+                                </div>
+                                <span className="font-serif text-xl text-gray-600 group-hover:text-black">Add Portfolio Category</span>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* Album Modal */}
+                <AnimatePresence>
+                    {selectedAlbum && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -170,9 +283,9 @@ const Gallery = () => {
                             {/* Header */}
                             <div className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-50">
                                 <div>
-                                    <h3 className="text-white font-serif text-3xl">{CATEGORIES.find(c => c.id === selectedAlbum)?.label}</h3>
+                                    <h3 className="text-white font-serif text-3xl">{categories.find(c => c.id === selectedAlbum)?.label}</h3>
                                     <p className="text-white/60 text-sm tracking-widest font-mono mt-1 uppercase">
-                                        #{CATEGORIES.find(c => c.id === selectedAlbum)?.tag}
+                                        #{categories.find(c => c.id === selectedAlbum)?.tag}
                                     </p>
                                 </div>
 
@@ -229,7 +342,7 @@ const Gallery = () => {
                                     <div className="col-span-full flex flex-col items-center justify-center py-32 text-white/40">
                                         <ImageOff size={64} className="mb-6 opacity-30" />
                                         <p className="text-2xl font-serif">Awaiting Memories</p>
-                                        <p className="text-sm tracking-widest uppercase mt-4">Upload images to Cloudinary with tag: {CATEGORIES.find(c => c.id === selectedAlbum)?.tag}</p>
+                                        <p className="text-sm tracking-widest uppercase mt-4">Upload images to Cloudinary with tag: {categories.find(c => c.id === selectedAlbum)?.tag}</p>
                                     </div>
                                 )}
                             </div>
@@ -237,6 +350,7 @@ const Gallery = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            </div>
         </section>
     );
 };

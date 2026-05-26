@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
 import { Star, Quote } from 'lucide-react';
+import { useLandingPage } from '../context/LandingPageContext';
+import SectionColorPicker from './SectionColorPicker';
 
 const Testimonials = () => {
-    const reviews = [
+    const { config, isEditMode, updateSection } = useLandingPage();
+    const testData = config?.testimonials || {};
+
+    const defaultReviews = [
         {
             id: 1,
             author: "Abhishek Khr",
@@ -27,55 +31,59 @@ const Testimonials = () => {
             text: "Excellent service from Team ALPHA, highly happy with the cinematic video and also the photo quality.",
             reply: "Happy to serve! Cinematic storytelling is what we love.",
             date: "Recent"
-        },
-        {
-            id: 4,
-            author: "Hemanth ms",
-            rating: 5,
-            text: "I had an amazing experience with Team Alpha Photography! Their creativity and professionalism exceeded my expectations.",
-            reply: "Thanks Hemanth! Creativity is at the core of Team Alpha.",
-            date: "Recent"
-        },
-        {
-            id: 6,
-            author: "Rahul Verma",
-            rating: 5,
-            text: "The best photography team in town. They are punctual, professional, and very creative with their angles. My family was very impressed with the final album.",
-            reply: "Professionalism is key for us, Rahul. Thank you for the kind words!",
-            date: "Recent"
-        },
-        {
-            id: 7,
-            author: "Sneha Reddy",
-            rating: 5,
-            text: "Wonderful experience with Yogesh and his team. They made us feel so comfortable during the shoot, and the results speak for themselves. Simply stunning!",
-            reply: "Making clients feel comfortable is our secret sauce! Thanks Sneha.",
-            date: "Recent"
-        },
-        {
-            id: 8,
-            author: "Vikram Sait",
-            rating: 5,
-            text: "If you want high-quality cinematic videos, Team Alpha is the way to go. Their equipment and vision are truly professional. 5 stars all the way!",
-            reply: "Cinematic videos are our passion, Vikram. Glad you enjoyed our work!",
-            date: "Recent"
         }
     ];
+
+    const title = testData.title !== undefined ? testData.title : "Client Stories";
+    const subtitle = testData.subtitle !== undefined ? testData.subtitle : "Testimonials from Google Reviews";
+    const reviews = testData.list && testData.list.length > 0 ? testData.list : defaultReviews;
+    const bgColor = testData.bgColor || '#F2EFEA';
+
+    const handleReviewUpdate = (index, field, value) => {
+        const newList = [...reviews];
+        newList[index] = { ...newList[index], [field]: value };
+        updateSection('testimonials', { list: newList });
+    };
 
     // Duplicate reviews for infinite scroll
     const duplicatedReviews = [...reviews, ...reviews];
 
     return (
-        <section className="py-24 bg-[#F2EFEA] overflow-hidden">
+        <section className="py-24 overflow-hidden relative" style={{ backgroundColor: bgColor }}>
+            {isEditMode && (
+                <SectionColorPicker 
+                    value={bgColor} 
+                    onChange={(color) => updateSection('testimonials', { bgColor: color })} 
+                />
+            )}
             <div className="max-w-7xl mx-auto px-6">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center mb-16"
+                    className="text-center mb-16 flex flex-col gap-2 items-center"
                 >
-                    <h2 className="text-4xl md:text-5xl font-serif mb-4">Client Stories</h2>
-                    <p className="text-gray-600 font-light tracking-widest uppercase text-xs">Testimonials from Google Reviews</p>
+                    {isEditMode ? (
+                        <>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => updateSection('testimonials', { title: e.target.value })}
+                                className="text-4xl md:text-5xl font-serif mb-2 text-[#1C1C1C] text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-2xl bg-transparent"
+                            />
+                            <input
+                                type="text"
+                                value={subtitle}
+                                onChange={(e) => updateSection('testimonials', { subtitle: e.target.value })}
+                                className="text-gray-600 font-light tracking-widest uppercase text-xs text-center border-b-2 border-dashed border-gray-400 focus:outline-none w-full max-w-sm bg-transparent"
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="text-4xl md:text-5xl font-serif mb-4">{title}</h2>
+                            <p className="text-gray-600 font-light tracking-widest uppercase text-xs">{subtitle}</p>
+                        </>
+                    )}
                 </motion.div>
 
                 <div className="relative">
@@ -86,7 +94,7 @@ const Testimonials = () => {
                                 x: [0, -1 * (reviews.length * 482)], // 450px width + 32px gap
                             }}
                             transition={{
-                                duration: 40,
+                                duration: isEditMode ? 0 : 40,
                                 ease: "linear",
                                 repeat: Infinity,
                             }}
@@ -95,46 +103,66 @@ const Testimonials = () => {
                         >
                             {duplicatedReviews.map((review, idx) => (
                                 <div
-                                    key={`${review.id}-${idx}`}
+                                    key={`${review.id || idx}-${idx}`}
                                     className="min-w-[350px] md:min-w-[450px] bg-white/60 backdrop-blur-sm p-10 rounded-2xl border border-white/40 shadow-xl relative group"
                                 >
                                     <Quote className="absolute top-6 right-6 text-black/5 w-16 h-16 group-hover:text-black/10 transition-colors" />
 
                                     <div className="flex gap-1 mb-6">
-                                        {[...Array(review.rating)].map((_, i) => (
+                                        {[...Array(Number(review.rating) || 5)].map((_, i) => (
                                             <Star key={i} size={14} className="fill-black text-black" />
                                         ))}
                                     </div>
 
-                                    <p className="text-gray-700 leading-relaxed italic mb-8 font-light text-lg">
-                                        "{review.text}"
-                                    </p>
-
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h4 className="font-serif font-bold text-lg">{review.author}</h4>
-                                            <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500">{review.date}</span>
+                                    {isEditMode && idx < reviews.length ? (
+                                        <div className="flex flex-col gap-3">
+                                            <textarea
+                                                value={review.text}
+                                                onChange={(e) => handleReviewUpdate(idx, 'text', e.target.value)}
+                                                className="text-gray-700 leading-relaxed italic mb-2 font-light text-sm border p-1 rounded"
+                                                rows={4}
+                                            />
+                                            <input
+                                                type="text"
+                                                value={review.author}
+                                                onChange={(e) => handleReviewUpdate(idx, 'author', e.target.value)}
+                                                className="font-serif font-bold text-sm border p-1 rounded"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={review.reply}
+                                                onChange={(e) => handleReviewUpdate(idx, 'reply', e.target.value)}
+                                                className="text-xs text-gray-500 font-light italic border p-1 rounded"
+                                                placeholder="Reply..."
+                                            />
                                         </div>
-                                        <div className="bg-black text-white px-3 py-1 rounded-full text-[10px] uppercase tracking-tighter">Verified Review</div>
-                                    </div>
-
-                                    {review.reply && (
-                                        <div className="mt-8 pt-8 border-t border-gray-100">
-                                            <p className="text-xs text-gray-500 font-light italic">
-                                                <span className="font-semibold text-black not-italic block mb-1">Response from Team Alpha:</span>
-                                                {review.reply}
+                                    ) : (
+                                        <>
+                                            <p className="text-gray-700 leading-relaxed italic mb-8 font-light text-lg">
+                                                "{review.text}"
                                             </p>
-                                        </div>
+
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h4 className="font-serif font-bold text-lg">{review.author}</h4>
+                                                    <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500">{review.date}</span>
+                                                </div>
+                                                <div className="bg-black text-white px-3 py-1 rounded-full text-[10px] uppercase tracking-tighter">Verified Review</div>
+                                            </div>
+
+                                            {review.reply && (
+                                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                                    <p className="text-xs text-gray-500 font-light italic">
+                                                        <span className="font-semibold text-black not-italic block mb-1">Response from Team Alpha:</span>
+                                                        {review.reply}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             ))}
                         </motion.div>
-                    </div>
-
-                    <div className="mt-12 text-center text-gray-400 text-xs tracking-widest flex items-center justify-center gap-4">
-                        <span className="h-[1px] w-12 bg-gray-200"></span>
-                        DRAG TO EXPLORE
-                        <span className="h-[1px] w-12 bg-gray-200"></span>
                     </div>
                 </div>
             </div>
