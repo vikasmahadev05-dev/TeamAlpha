@@ -66,9 +66,15 @@ const globalLimiter = rateLimit({
 });
 app.use('/api/', globalLimiter);
 
+let envFrontendUrls = [];
+if (process.env.FRONTEND_URL) {
+    // Split by || or comma, trim whitespace, and remove trailing slashes
+    envFrontendUrls = process.env.FRONTEND_URL.split(/\|\||,/).map(url => url.trim().replace(/\/$/, "")).filter(Boolean);
+}
+
 const allowedOrigins = [
     "https://team-alpha-d64k.onrender.com",
-    process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : null
+    ...envFrontendUrls
 ].filter(Boolean);
 
 app.use(cors({
@@ -427,11 +433,19 @@ authRouter.get('/google/callback', async (req, res) => {
         });
 
         // Redirect back to frontend calendar page
-        const frontendUrl = process.env.FRONTEND_URL || 'https://team-alpha-d64k.onrender.com';
+        let frontendUrl = 'https://team-alpha-d64k.onrender.com';
+        if (process.env.FRONTEND_URL) {
+            const urls = process.env.FRONTEND_URL.split(/\|\||,/).map(u => u.trim());
+            if (urls.length > 0) frontendUrl = urls[0];
+        }
         res.redirect(`${frontendUrl.replace(/\/$/, "")}/admin/calendar?sync=success`);
     } catch (err) {
         console.error('Callback error:', err.message);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://team-alpha-d64k.onrender.com';
+        let frontendUrl = 'https://team-alpha-d64k.onrender.com';
+        if (process.env.FRONTEND_URL) {
+            const urls = process.env.FRONTEND_URL.split(/\|\||,/).map(u => u.trim());
+            if (urls.length > 0) frontendUrl = urls[0];
+        }
         res.redirect(`${frontendUrl.replace(/\/$/, "")}/admin/calendar?sync=error`);
     }
 });
