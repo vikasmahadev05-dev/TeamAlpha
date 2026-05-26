@@ -165,9 +165,14 @@ const Services = () => {
                             </p>
                         </>
                     )}
-                    <a href="https://www.vivahasya.in" target="_blank" rel="noopener noreferrer" className="border-b border-black pb-1 hover:opacity-60 transition">
-                        Visit Vivahasya
-                    </a>
+                    <div className="flex gap-4">
+                        <a href="https://www.vivahasya.in" target="_blank" rel="noopener noreferrer" className="border-b border-black pb-1 hover:opacity-60 transition">
+                            Visit Vivahasya
+                        </a>
+                        <a href="https://www.instagram.com/vivahasya.celebrations?igsh=MTZyeWY4bndrYW5nNQ==q" target="_blank" rel="noopener noreferrer" className="border-b border-black pb-1 hover:opacity-60 transition">
+                            Visit Instagram
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
