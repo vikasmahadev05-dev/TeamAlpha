@@ -11,34 +11,8 @@ export default function Layout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
     
-    // Header Scroll Visibility Logic (Matches Topbar)
-    const [isVisible, setIsVisible] = useState(true);
-    const lastScrollY = useRef(0);
-
-    useEffect(() => {
-        let ticking = false;
-        const handleScroll = () => {
-            if (!ticking) {
-                window.requestAnimationFrame(() => {
-                    const currentScrollY = window.scrollY;
-                    
-                    if (currentScrollY < 10) {
-                        setIsVisible(true);
-                    } else if (currentScrollY > lastScrollY.current) {
-                        setIsVisible(false);
-                    } else if (currentScrollY < lastScrollY.current - 5) {
-                        setIsVisible(true);
-                    }
-                    
-                    lastScrollY.current = currentScrollY;
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        };
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+    // Removed complex scroll visibility logic as per user request to prevent overlapping.
+    const isVisible = true;
 
     const backgroundStyle = useMemo(() => ({
         background: `
@@ -99,8 +73,8 @@ export default function Layout() {
 
             {/* Main Content Area */}
             <div className={`flex-1 transition-all duration-500 flex flex-col min-w-0 ${!isFocusMode ? "lg:ml-[280px]" : "ml-0"}`}>
-                <div className={`sticky top-0 z-40 transition-all duration-500 pt-4 md:pt-8 px-4 md:px-10 pb-4 flex flex-col-reverse md:flex-row md:items-center justify-between gap-4 ${isFocusMode || !isVisible ? "opacity-0 -translate-y-full pointer-events-none" : "opacity-100 translate-y-0"}`}>
-                    <div className={`floating-card-animation transition-all duration-700 flex justify-center md:justify-start w-full md:w-auto ${isVisible ? "opacity-100 translate-y-[6px]" : "opacity-0 -translate-y-10 pointer-events-none"}`}>
+                <div className={`relative z-40 pt-4 md:pt-8 px-4 md:px-10 pb-4 flex flex-col-reverse md:flex-row md:items-center justify-between gap-4 ${isFocusMode ? "hidden" : ""}`}>
+                    <div className="floating-card-animation flex justify-center md:justify-start w-full md:w-auto">
                         {!isFocusMode && <Breadcrumbs />}
                     </div>
                     <div className="floating-card-animation w-full md:w-auto flex justify-center md:justify-end">
@@ -108,7 +82,7 @@ export default function Layout() {
                     </div>
                 </div>
 
-                <main className={`w-full mx-auto transition-all duration-500 ${isFocusMode ? "p-0 max-w-none h-screen flex flex-col justify-center" : "px-4 pt-24 md:px-10 lg:px-12 max-w-[1600px] animate-in fade-in slide-in-from-top-4 duration-1000"}`}>
+                <main className={`w-full mx-auto transition-all duration-500 ${isFocusMode ? "p-0 max-w-none h-screen flex flex-col justify-center" : "px-4 pt-8 md:px-10 lg:px-12 max-w-[1600px] animate-in fade-in slide-in-from-top-4 duration-1000"}`}>
                     <PageTransition>
                         <Suspense fallback={<div className="flex h-64 w-full items-center justify-center text-xl opacity-50">Loading Dashboard...</div>}>
                             <Outlet context={{ setIsFocusMode }} />

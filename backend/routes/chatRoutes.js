@@ -193,13 +193,27 @@ router.get('/admin/conversations', auth, async (req, res) => {
         users.forEach(u => userDetails[u._id.toString()] = u.name || `${u.firstName} ${u.lastName}`.trim());
 
         const roomCounts = {};
-        rooms.forEach(r => roomCounts[r.userId] = r.unreadCountAdmin);
+        const clearedAtMap = {};
+        rooms.forEach(r => {
+            roomCounts[r.userId] = r.unreadCountAdmin;
+            if (r.clearedAtAdmin) {
+                clearedAtMap[r.userId] = new Date(r.clearedAtAdmin).getTime();
+            }
+        });
 
-        const result = Object.values(conversationsMap).map(conv => ({
-            ...conv,
-            userName: userDetails[conv.chatId] || 'Alpha Client',
-            unreadCount: roomCounts[conv.chatId] || 0
-        }));
+        const result = [];
+        Object.values(conversationsMap).forEach(conv => {
+            const clearTime = clearedAtMap[conv.chatId];
+            // If the chat was cleared globally and no new messages arrived since then, hide it
+            if (clearTime && new Date(conv.timestamp).getTime() <= clearTime) {
+                return;
+            }
+            result.push({
+                ...conv,
+                userName: userDetails[conv.chatId] || 'Alpha Client',
+                unreadCount: roomCounts[conv.chatId] || 0
+            });
+        });
 
         res.json(result.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
     } catch (err) { res.status(500).send('Server Error'); }

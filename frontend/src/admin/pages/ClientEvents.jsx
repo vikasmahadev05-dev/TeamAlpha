@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, FolderOpen, Calendar, MoreVertical, Loader2, ArrowLeft, Image as ImageIcon, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, Calendar, MoreVertical, Loader2, ArrowLeft, Image as ImageIcon, ChevronRight, Pencil, Trash2, Globe, Star } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +19,27 @@ export default function ClientEvents() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [portfolioToggleEvent, setPortfolioToggleEvent] = useState(null);
+
+  const togglePortfolioStatus = async (status) => {
+    if (!portfolioToggleEvent) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API_BASE_URL}/api/drive-gallery/event/${portfolioToggleEvent._id}/portfolio`, {
+        portfolioEnabled: status
+      }, {
+        headers: { 'x-auth-token': token }
+      });
+      setEvents(prev => prev.map(e => 
+        e._id === portfolioToggleEvent._id ? { ...e, portfolioEnabled: status } : e
+      ));
+      toast.success(status ? "Event added to Home Portfolio." : "Event removed from Home Portfolio.");
+    } catch (err) {
+      toast.error("Failed to update event portfolio status.");
+    } finally {
+      setPortfolioToggleEvent(null);
+    }
+  };
 
   useEffect(() => {
     fetchClientAndEvents();
@@ -136,9 +157,20 @@ export default function ClientEvents() {
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    setPortfolioToggleEvent(event);
+                  }}
+                  className={`p-3 backdrop-blur-xl border border-white/20 hover:bg-[#cfe8d5]/40 rounded-2xl transition-all shadow-lg group/port ${event.portfolioEnabled !== false ? 'bg-yellow-400/20 text-yellow-300' : 'bg-white/10 text-white hover:text-white'}`}
+                  title="Toggle Home Portfolio"
+                >
+                  <Globe size={16} className="group-hover/port:scale-110 transition-transform" />
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
                     handleEdit(e, event);
                   }}
-                  className="p-3 bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-[#cfe8d5]/40 text-white rounded-2xl transition-all shadow-lg group/edit"
+                  className="p-3 bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-[#cfe8d5]/40 text-white hover:text-white rounded-2xl transition-all shadow-lg group/edit"
                   title="Edit Event"
                 >
                   <Pencil size={16} className="group-hover/edit:scale-110 transition-transform" />
@@ -158,18 +190,9 @@ export default function ClientEvents() {
 
               {/* Dynamic Text Content Overlay */}
               <div className="absolute inset-0 p-8 flex flex-col justify-end pointer-events-none z-30">
-                <motion.div 
-                  initial={false}
-                  className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 w-fit mb-4 group-hover:bg-[#cfe8d5]/20 group-hover:border-[#cfe8d5]/40 transition-all duration-500"
-                >
-                  <span className="text-[10px] text-white/90 group-hover:text-white font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ImageIcon size={10} className="mb-0.5" />
-                    Event Collection
-                  </span>
-                </motion.div>
-
-                <h3 className="text-3xl font-bold text-white tracking-tight mb-2 group-hover:text-[#cfe8d5] transition-colors duration-500">
+                <h3 className="text-3xl font-bold text-white tracking-tight mb-2 group-hover:text-[#cfe8d5] transition-colors duration-500 flex items-center gap-3">
                   {event.name}
+                  {event.portfolioEnabled !== false && <Star size={20} className="text-yellow-400 fill-yellow-400 drop-shadow-md" />}
                 </h3>
 
                 <div className="flex items-center gap-3 text-white/50 group-hover:text-white/80 transition-colors duration-500">
@@ -210,6 +233,54 @@ export default function ClientEvents() {
         event={editingEvent}
         onSuccess={fetchClientAndEvents}
       />
+
+      {/* Portfolio Toggle Modal */}
+      <AnimatePresence>
+        {portfolioToggleEvent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl relative overflow-hidden text-center"
+            >
+              <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-gray-100 to-transparent -z-10" />
+              <div className="w-24 h-24 mx-auto rounded-[20px] overflow-hidden mb-6 shadow-[0_10px_20px_rgba(0,0,0,0.1)] border-4 border-white bg-gray-100">
+                <img src={portfolioToggleEvent.thumbnail} alt={portfolioToggleEvent.name} className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">{portfolioToggleEvent.name}</h3>
+              <p className="text-gray-500 mb-8 font-light text-sm">
+                {portfolioToggleEvent.portfolioEnabled !== false
+                  ? "This event is currently visible as a filter in the Home Portfolio. Do you want to hide it?"
+                  : "Display this event as a filter in the Home Portfolio?"}
+              </p>
+              <div className="flex gap-4 w-full">
+                <button
+                  onClick={() => setPortfolioToggleEvent(null)}
+                  className="flex-1 py-3.5 px-4 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => togglePortfolioStatus(portfolioToggleEvent.portfolioEnabled === false ? true : false)}
+                  className={`flex-1 py-3.5 px-4 rounded-xl font-medium text-white transition-all shadow-lg ${
+                    portfolioToggleEvent.portfolioEnabled !== false
+                      ? "bg-red-500 hover:bg-red-600 shadow-red-500/20" 
+                      : "bg-black hover:bg-gray-800 shadow-black/20"
+                  }`}
+                >
+                  {portfolioToggleEvent.portfolioEnabled !== false ? "Hide Event" : "Yes, Display"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

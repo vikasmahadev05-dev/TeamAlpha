@@ -71,24 +71,29 @@ const Navbar = () => {
     >
       <div className={`max-w-7xl mx-auto px-6 flex justify-between items-center transition-colors duration-300 ${textColor}`}>
         {/* Logo */}
-        <RouterLink to="/" className="cursor-pointer hover:opacity-80 transition flex items-center gap-3">
+        <RouterLink to="/" className="cursor-pointer hover:opacity-80 transition flex items-center gap-2 md:gap-3">
           <img
             src={new_logo}
             alt="Team Alpha Logo"
-            style={{
-              height: scrolled || !isHomePage ? "80px" : "160px",
-              width: "auto",
-              background: "transparent",
-              border: "none",
-              boxShadow: "none",
-              padding: 0,
-              margin: 0,
-              objectFit: "contain"
-            }}
+            className={`w-auto object-contain transition-all duration-500 ${
+              scrolled || !isHomePage 
+                ? "h-12 sm:h-16 md:h-20" 
+                : "h-16 sm:h-24 md:h-32 lg:h-40"
+            }`}
           />
           <div className="flex flex-col">
-            <span className="text-2xl font-serif font-bold tracking-[0.2em] leading-none">TEAM ALPHA</span>
-            <span className="text-[10px] tracking-[0.3em] font-sans uppercase mt-1 opacity-80"> - THE WEDDING ARTIST - </span>
+            <span className={`font-serif font-bold leading-none transition-all duration-500 ${
+              scrolled || !isHomePage 
+                ? "text-lg sm:text-xl md:text-2xl tracking-[0.1em] md:tracking-[0.2em]" 
+                : "text-xl sm:text-2xl md:text-3xl tracking-[0.1em] md:tracking-[0.2em]"
+            }`}>TEAM ALPHA</span>
+            <span className={`font-sans uppercase mt-1 opacity-80 transition-all duration-500 ${
+              scrolled || !isHomePage
+                ? "text-[6px] sm:text-[8px] md:text-[10px] tracking-[0.1em] sm:tracking-[0.2em] md:tracking-[0.3em]"
+                : "hidden sm:block text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em]"
+            }`}>
+              - THE WEDDING ARTIST - 
+            </span>
           </div>
         </RouterLink>
 

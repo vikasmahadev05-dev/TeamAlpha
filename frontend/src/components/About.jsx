@@ -20,7 +20,16 @@ const About = () => {
 
     const title = aboutData.title !== undefined ? aboutData.title : defaultTitle;
     const text = aboutData.text !== undefined ? aboutData.text : defaultText;
-    const team = aboutData.team && aboutData.team.length === 2 ? aboutData.team : defaultTeam;
+    const team = aboutData.team && aboutData.team.length === 2 
+        ? aboutData.team.map((member, idx) => {
+            let img = member.img;
+            if (img && img.startsWith('/assets/')) {
+                img = idx === 0 ? yogeshImg : sachithaImg;
+            }
+            return { ...member, img };
+        }) 
+        : defaultTeam;
+    
     const bgColor = aboutData.bgColor || '#ffffff';
 
     const handleTeamUpdate = (index, field, value) => {

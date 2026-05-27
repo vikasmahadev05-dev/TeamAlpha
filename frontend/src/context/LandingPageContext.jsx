@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { toast } from 'react-hot-toast';
+import API_BASE_URL from '../utils/apiConfig';
 
 const LandingPageContext = createContext();
 
@@ -10,8 +11,6 @@ export const LandingPageProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isEditMode, setIsEditMode] = useState(false);
     const { token, user } = useAuth();
-    
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => {
         fetchConfig();
@@ -19,7 +18,7 @@ export const LandingPageProvider = ({ children }) => {
 
     const fetchConfig = async () => {
         try {
-            const res = await axios.get(`${API_URL}/api/landing-page`);
+            const res = await axios.get(`${API_BASE_URL}/api/landing-page`);
             setConfig(res.data);
         } catch (error) {
             console.error('Error fetching landing page config:', error);
@@ -35,8 +34,14 @@ export const LandingPageProvider = ({ children }) => {
             return;
         }
 
+        // Prevent saving if there are pending image uploads (blob URLs)
+        if (JSON.stringify(newConfig).includes("blob:")) {
+            toast.error("Please wait for the image to finish uploading before saving.");
+            return;
+        }
+
         try {
-            const res = await axios.put(`${API_URL}/api/landing-page`, newConfig, {
+            const res = await axios.put(`${API_BASE_URL}/api/landing-page`, newConfig, {
                 headers: { 'x-auth-token': token }
             });
             setConfig(res.data);

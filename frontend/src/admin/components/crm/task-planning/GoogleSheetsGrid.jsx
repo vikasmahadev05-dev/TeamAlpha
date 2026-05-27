@@ -29,7 +29,6 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
     const [searchTerm, setSearchTerm] = useState("");
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [isSheetIDOpen, setIsSheetIDOpen] = useState(false);
-    const [newSheetID, setNewSheetID] = useState(localStorage.getItem('google_sheet_id') || "");
     const [isMutating, setIsMutating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [pendingChanges, setPendingChanges] = useState({}); // { "rowId-colIdx": value }
@@ -279,37 +278,41 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
             onKeyDown={handleKeyDown} tabIndex="0">
 
             {/* HEADER */}
-            <div className={`bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-6 py-4 flex flex-col gap-2 transition-all
-                ${isFullScreen ? 'rounded-0 border-t-0 p-7 shadow-xl' : 'rounded-t-3xl'}`}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <div className="p-3 bg-emerald-500/10 rounded-2xl shadow-inner border border-emerald-500/10 group/logo">
+            <div className={`bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] px-4 md:px-6 py-4 flex flex-col gap-4 transition-all
+                ${isFullScreen ? 'rounded-0 border-t-0 md:p-7 shadow-xl' : 'rounded-t-3xl'}`}>
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full gap-4">
+                    <div className="flex items-center gap-3 md:gap-6 w-full md:w-auto">
+                        <div className="p-2 md:p-3 bg-emerald-500/10 rounded-2xl shadow-inner border border-emerald-500/10 group/logo shrink-0 hidden sm:block">
                             <TableIcon className="text-emerald-600 transition-transform group-hover/logo:scale-110" size={28} />
                         </div>
-                        <div>
-                            <div className="flex items-center gap-4">
-                                <h1 className="text-lg font-black text-slate-800 tracking-tight uppercase tracking-[0.1em]">
-                                    {isFullScreen ? 'Team Alpha Task Tracker' : 'Task Tracker'}
-                                    <span className="text-slate-300 ml-2 font-light">{sheetName || "..."}</span>
+                        <div className="flex-1 w-full">
+                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full">
+                                <h1 className="text-sm md:text-lg font-black text-slate-800 tracking-tight uppercase tracking-[0.1em] leading-tight">
+                                    {isFullScreen ? 'Alpha Tracker' : 'Task Tracker'}
+                                    <span className="text-slate-300 ml-2 font-light block md:inline text-xs md:text-lg truncate max-w-[200px] md:max-w-none">{sheetName || "..."}</span>
                                 </h1>
-                                <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-widest border border-emerald-500/20">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                    Sync Active
+                                <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-600 text-[8px] md:text-[9px] px-2 md:px-3 py-1 rounded-full font-black uppercase tracking-widest border border-emerald-500/20 w-fit">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    Live Sync
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
+                    <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto justify-end">
+                        <div className="relative flex-1 md:flex-none">
                             <button ref={switchButtonRef} onClick={() => setIsSheetIDOpen(!isSheetIDOpen)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-[11px] font-black transition-all border
+                                className={`flex items-center justify-center gap-2 px-3 md:px-4 py-2 w-full md:w-auto rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black transition-all border
                                     ${isSheetIDOpen ? 'bg-slate-800 text-white border-slate-900 shadow-xl' : 'bg-slate-50 text-slate-500 border-slate-100 hover:bg-slate-100 shadow-sm'}`}>
                                 <Database size={16} className={isSheetIDOpen ? 'text-emerald-400' : 'text-slate-400'} />
-                                {isSheetIDOpen ? 'CLOSE CONSOLE' : 'SWITCH SHEET'}
+                                {isSheetIDOpen ? 'CLOSE' : 'SHEET'}
                             </button>
                             {isSheetIDOpen && createPortal(
-                                <div className="fixed bg-slate-900 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] border border-slate-700/50 p-7 z-[99999999] animate-in zoom-in-95 duration-200"
-                                    style={{ top: (switchButtonRef.current?.getBoundingClientRect().bottom || 0) + 12, right: window.innerWidth - (switchButtonRef.current?.getBoundingClientRect().right || 0), width: '480px' }}>
+                                <div className="fixed bg-slate-900 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] border border-slate-700/50 p-5 md:p-7 z-[99999999] animate-in zoom-in-95 duration-200"
+                                    style={{ 
+                                        top: (switchButtonRef.current?.getBoundingClientRect().bottom || 0) + 12, 
+                                        right: window.innerWidth < 640 ? 10 : window.innerWidth - (switchButtonRef.current?.getBoundingClientRect().right || 0), 
+                                        width: window.innerWidth < 640 ? 'calc(100vw - 20px)' : '480px' 
+                                    }}>
                                     <div className="flex items-center justify-between mb-5">
                                         <div className="flex items-center gap-3 text-white">
                                             <div className="p-2 bg-emerald-500/20 rounded-xl"><Layers className="text-emerald-400" size={20} /></div>
@@ -327,23 +330,21 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
                                             <p className="text-[10px] text-emerald-500/60 font-black uppercase tracking-widest mb-1 flex items-center gap-2"><HelpCircle size={12} /> Requirement</p>
                                             <p className="text-[11px] text-slate-300 italic leading-relaxed">Share sheet with: <span className="text-emerald-400 underline font-mono select-all block mt-1 py-1 px-2 bg-slate-800/50 rounded-lg">teamalpha@team-491805.iam.gserviceaccount.com</span></p>
                                         </div>
-                                        <button onClick={handleSwitchSheet} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl py-5 flex items-center justify-center gap-4 text-[13px] font-black uppercase tracking-[0.25em] transition-all shadow-2xl active:scale-95 group"><Database size={20} /> Connect Pipeline</button>
+                                        <button onClick={handleSwitchSheet} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl py-4 flex items-center justify-center gap-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all shadow-2xl active:scale-95 group"><Database size={20} /> Connect Pipeline</button>
                                     </div>
                                 </div>, document.body)}
                         </div>
-                        <div className="w-px h-8 bg-slate-100 mx-2"></div>
+                        <div className="hidden md:block w-px h-8 bg-slate-100 mx-1"></div>
                         {isAdmin && (
-                            <button onClick={() => setIsSettingsOpen(true)} className="w-11 h-11 flex items-center justify-center bg-emerald-500 text-white rounded-2xl transition-all shadow-xl active:scale-90" title="Manage Dropdowns">
-                                <Settings size={22} />
+                            <button onClick={() => setIsSettingsOpen(true)} className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center bg-emerald-500 text-white rounded-xl md:rounded-2xl transition-all shadow-xl active:scale-90" title="Manage Dropdowns">
+                                <Settings size={20} />
                             </button>
                         )}
-                        <button onClick={() => setIsFullScreen(!isFullScreen)} className="w-11 h-11 flex items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-xl active:scale-90" title={isFullScreen ? "Minimize" : "Maximize"}>
+                        <button onClick={() => setIsFullScreen(!isFullScreen)} className="hidden md:flex w-11 h-11 items-center justify-center bg-slate-900 text-white rounded-2xl transition-all shadow-xl active:scale-90" title={isFullScreen ? "Minimize" : "Maximize"}>
                             {isFullScreen ? <Minimize2 size={22} /> : <Maximize2 size={22} />}
                         </button>
                     </div>
                 </div>
-
-
 
                 {/* MONTH TABS */}
                 <div className="flex items-center gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
@@ -356,27 +357,27 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
             </div>
 
             {/* TOOLBAR */}
-            <div className="bg-[#f8fafc]/50 backdrop-blur-sm border-b border-[#e2e8f0] px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                    <div className="relative w-96 group">
+            <div className="bg-[#f8fafc]/50 backdrop-blur-sm border-b border-[#e2e8f0] px-4 md:px-6 py-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div className="flex items-center gap-5 w-full md:w-auto">
+                    <div className="relative w-full md:w-96 group">
                         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
-                        <input type="text" className="w-full pl-12 pr-6 py-3 bg-white border border-[#e2e8f0] rounded-2xl text-[13px] font-bold text-slate-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        <input type="text" className="w-full pl-12 pr-6 py-3 bg-white border border-[#e2e8f0] rounded-xl md:rounded-2xl text-[13px] font-bold text-slate-700 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm" placeholder="Search tasks..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto">
                     {isAdmin && (
                         <>
                             {Object.keys(pendingChanges).length > 0 && (
-                                <button onClick={handleGlobalSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl text-[11px] font-black hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-50 animate-in zoom-in-95">
+                                <button onClick={handleGlobalSave} disabled={isSaving} className="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3 bg-emerald-600 text-white rounded-xl md:rounded-2xl text-[11px] font-black hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-50 animate-in zoom-in-95">
                                     {isSaving ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} className="text-white" />} 
-                                    SAVE CHANGES ({Object.keys(pendingChanges).length})
+                                    SAVE ({Object.keys(pendingChanges).length})
                                 </button>
                             )}
-                            <button onClick={handleAddColumn} disabled={isMutating} className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95 disabled:opacity-50">
-                                <Plus size={18} className="text-emerald-500" /> NEW COLUMN
+                            <button onClick={handleAddColumn} disabled={isMutating} className="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl text-[11px] font-black text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95 disabled:opacity-50">
+                                <Plus size={18} className="text-emerald-500" /> COL
                             </button>
-                            <button onClick={handleAddRow} disabled={isMutating} className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black hover:bg-slate-800 transition-all shadow-2xl active:scale-95 uppercase tracking-widest border border-slate-800 disabled:opacity-50">
-                                {isMutating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} className="text-emerald-400" />} Add Task
+                            <button onClick={handleAddRow} disabled={isMutating} className="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-8 py-3 bg-slate-900 text-white rounded-xl md:rounded-2xl text-[11px] font-black hover:bg-slate-800 transition-all shadow-2xl active:scale-95 uppercase tracking-widest border border-slate-800 disabled:opacity-50">
+                                {isMutating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} className="text-emerald-400" />} ADD
                             </button>
                         </>
                     )}
@@ -385,7 +386,7 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
 
             {/* GRID */}
             <div className={`flex-1 overflow-auto relative custom-scrollbar bg-white ${isFullScreen ? 'max-h-[calc(100vh-250px)]' : 'h-[600px]'}`} ref={gridRef}>
-                <table className="border-collapse w-full table-fixed min-w-[2600px]">
+                <table className="border-collapse w-full table-fixed" style={{ minWidth: Math.max(1000, headers.length * 220 + 120) + 'px' }}>
                     <thead>
                         <tr className="bg-slate-50 h-14">
                             <th className="sticky left-0 top-0 z-30 w-14 border-r border-b border-slate-200 text-slate-300 bg-slate-50 shadow-md">#</th>
@@ -420,11 +421,15 @@ const GoogleSheetsGrid = ({ data, onRefresh, isAdmin, activeMonth, setMonth }) =
                                     const displayValue = isDirty ? pendingChanges[`${row.rowId}-${cIdx}`] : val;
                                     const type = getColumnType(cIdx);
                                     return (
-                                        <td key={cIdx} onClick={() => handleCellClick(row.rowId, cIdx)} onDoubleClick={() => handleCellDoubleClick(row.rowId, cIdx, val)}
+                                        <td key={cIdx} 
+                                            onClick={() => {
+                                                handleCellClick(row.rowId, cIdx);
+                                                handleCellDoubleClick(row.rowId, cIdx, val);
+                                            }}
                                             className={`relative border-r border-b border-slate-100 px-5 transition-all text-[13px] 
                                                 ${isSelected ? 'ring-2 ring-emerald-500 ring-inset z-20 bg-emerald-500/5 shadow-inner' : ''} 
                                                 ${isDirty ? 'bg-amber-500/5' : ''} 
-                                                ${isEditing ? 'p-1' : 'py-3 font-bold'}`}>
+                                                ${isEditing ? 'p-1' : 'py-3 font-bold cursor-pointer'}`}>
                                             {isDirty && !isEditing && (
                                                 <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 shadow-sm animate-pulse"></div>
                                             )}

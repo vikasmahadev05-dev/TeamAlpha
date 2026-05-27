@@ -12,8 +12,8 @@ import toast from "react-hot-toast";
 import API_BASE_URL from '../../utils/apiConfig';
 
 export default function CRM() {
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("leads");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "leads");
   const [leads, setLeads] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,20 @@ export default function CRM() {
   useEffect(() => {
     const query = searchParams.get("search");
     if (query) setSearchQuery(query);
+    const tab = searchParams.get("tab");
+    if (tab && tab !== activeTab) setActiveTab(tab);
   }, [searchParams]);
+
+  useEffect(() => {
+    const currentTab = searchParams.get("tab");
+    if (currentTab !== activeTab) {
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set("tab", activeTab);
+            return newParams;
+        }, { replace: true });
+    }
+  }, [activeTab, setSearchParams]);
 
   const fetchLeads = async () => {
     setLoading(true);

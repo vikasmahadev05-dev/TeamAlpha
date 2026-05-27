@@ -426,6 +426,128 @@ router.post('/verify/:id', async (req, res) => {
 
 
 /**
+ * @route   GET /api/drive-gallery/portfolio/public
+ * @desc    Get all portfolio-enabled gallery collections publicly
+ */
+router.get('/portfolio/public', async (req, res) => {
+    try {
+        const galleries = await DriveGallery.find({ portfolioEnabled: true }).sort({ createdAt: -1 });
+        res.json(galleries);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/drive-gallery/portfolio/public/:clientId/events
+ * @desc    Get all portfolio-enabled events for a gallery publicly
+ */
+router.get('/portfolio/public/:clientId/events', async (req, res) => {
+    try {
+        const events = await GalleryEvent.find({ 
+            clientId: req.params.clientId,
+            portfolioEnabled: { $ne: false } // Default is true, so anything not explicitly false is included
+        }).sort({ eventDate: -1 });
+        res.json(events);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/drive-gallery/portfolio/public/files/:eventId
+ * @desc    Fetch images/videos for a specific Event publicly
+ */
+router.get('/portfolio/public/files/:eventId', async (req, res) => {
+    try {
+        const event = await GalleryEvent.findById(req.params.eventId);
+        if (!event) {
+            return res.status(404).json({ error: "Event not found" });
+        }
+        const files = await GoogleDriveService.getFolderContents(event.driveFolderId);
+        res.json(files);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/drive-gallery/portfolio/public/gallery-files/:galleryId
+ * @desc    Fetch ALL images/videos for a DriveGallery from all its events publicly
+ */
+router.get('/portfolio/public/gallery-files/:galleryId', async (req, res) => {
+    try {
+        const gallery = await DriveGallery.findById(req.params.galleryId);
+        if (!gallery) {
+            return res.status(404).json({ error: "Gallery not found" });
+        }
+        
+        const events = await GalleryEvent.find({ 
+            clientId: gallery._id,
+            portfolioEnabled: { $ne: false } 
+        });
+
+        if (events.length === 0) {
+            return res.json([]);
+        }
+
+        const allFilesPromises = events.map(event => 
+            GoogleDriveService.getFolderContents(event.driveFolderId)
+        );
+
+        const results = await Promise.all(allFilesPromises);
+        const allFiles = results.flat();
+        
+        const uniqueFilesMap = new Map();
+        for (const file of allFiles) {
+            if (!uniqueFilesMap.has(file.id)) {
+                uniqueFilesMap.set(file.id, file);
+            }
+        }
+        
+        res.json(Array.from(uniqueFilesMap.values()));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   PATCH /api/drive-gallery/:id/portfolio
+ * @desc    Toggle portfolio visibility for a client collection
+ */
+router.patch('/:id/portfolio', auth, async (req, res) => {
+    try {
+        const { portfolioEnabled } = req.body;
+        const client = await DriveGallery.findByIdAndUpdate(
+            req.params.id, 
+            { portfolioEnabled }, 
+            { new: true }
+        );
+        res.json(client);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * @route   PATCH /api/drive-gallery/event/:eventId/portfolio
+ * @desc    Toggle portfolio visibility for a specific event
+ */
+router.patch('/event/:eventId/portfolio', auth, async (req, res) => {
+    try {
+        const { portfolioEnabled } = req.body;
+        const event = await GalleryEvent.findByIdAndUpdate(
+            req.params.eventId, 
+            { portfolioEnabled }, 
+            { new: true }
+        );
+        res.json(event);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * @route   GET /api/drive-gallery/:id
  * @desc    Get client info
  */

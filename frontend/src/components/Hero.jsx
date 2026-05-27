@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useLandingPage } from '../context/LandingPageContext';
 import ImageUploadInput from './ImageUploadInput';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
     const { config, isEditMode, updateSection } = useLandingPage();
+    const navigate = useNavigate();
     const heroData = config?.hero || {};
 
     const defaultTitle = "Timeless Moments, Captured Beautifully";
@@ -25,7 +27,7 @@ const Hero = () => {
                 />
                 <div className="absolute inset-0 bg-black/40"></div>
                 {isEditMode && (
-                    <div className="absolute top-24 left-1/2 -translate-x-1/2 z-10 bg-white/90 p-4 rounded shadow flex flex-col gap-2 w-[90%] max-w-lg">
+                    <div className="absolute top-32 left-1/2 -translate-x-1/2 z-[60] bg-white/90 p-4 rounded shadow flex flex-col gap-2 w-[90%] max-w-lg">
                         <span className="text-xs font-bold text-gray-800">Hero Banner Background:</span>
                         <ImageUploadInput 
                             value={bannerImage} 
@@ -78,7 +80,7 @@ const Hero = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1, delay: 0.6 }}
-                    onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() => navigate('/quote')}
                     className="px-8 py-3 bg-white text-black font-medium tracking-wide uppercase text-sm hover:bg-gray-100 transition-colors rounded-full shadow-lg"
                 >
                     Book Your Session

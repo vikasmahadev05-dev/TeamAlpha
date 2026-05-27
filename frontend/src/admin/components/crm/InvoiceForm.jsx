@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { FileText, Send, IndianRupee, Plus, Trash2, X, Download, LayoutTemplate, Camera, ChevronRight, ChevronLeft, Loader2, Save } from "lucide-react";
+import { FileText, Send, IndianRupee, Plus, Trash2, X, Download, LayoutTemplate, Camera, ChevronRight, ChevronLeft, Loader2, Save, Eye } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { toJpeg } from "html-to-image";
@@ -51,6 +51,7 @@ export default function InvoiceForm({ onClose, initialData = null, initialClient
 
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const previewRef = useRef(null);
 
@@ -154,9 +155,17 @@ export default function InvoiceForm({ onClose, initialData = null, initialClient
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
             <button
               type="button"
+              onClick={() => setShowPreview(true)}
+              className="px-5 py-2.5 bg-gray-50 hover:bg-white text-[#2d2d2d] rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm border border-gray-200"
+            >
+              <Eye size={14} />
+              <span className="hidden sm:inline">Preview</span>
+            </button>
+            <button
+              type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="px-5 py-2.5 bg-gray-50 hover:bg-white text-[#2d2d2d] rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm border border-gray-200 disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#2d2d2d] hover:bg-black text-white rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm disabled:opacity-50"
             >
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               <span className="hidden sm:inline">Render PDF</span>
@@ -202,18 +211,7 @@ export default function InvoiceForm({ onClose, initialData = null, initialClient
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] uppercase font-bold tracking-[0.15em] text-[#9a9a9a] ml-1">Hero Cover Image (Optional)</label>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                        <div className="w-20 h-20 bg-gray-100 rounded-2xl border border-gray-200 shadow-inner overflow-hidden flex items-center justify-center">
-                          {coverImage ? <img src={coverImage} className="w-full h-full object-cover" /> : <Camera size={24} className="text-[#c0c0c0]" />}
-                        </div>
-                        <label className="flex items-center gap-2 px-5 py-3.5 bg-white border border-gray-200 rounded-2xl text-[11px] font-bold uppercase tracking-widest cursor-pointer hover:bg-gray-50 transition-all text-[#2d2d2d] shadow-sm">
-                          <Camera size={16} /> Choose Visual
-                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                        </label>
-                      </div>
-                    </div>
+
                   </div>
                 </section>
               )}
@@ -360,6 +358,69 @@ export default function InvoiceForm({ onClose, initialData = null, initialClient
               <EstimatePreview data={{ clientName, events, timeline, deliverables, deliverablesPrice, discount, extraCharges, total: grandTotal, coverImage }} />
             </div>
           </div>
+
+          {showPreview && (
+            <div className="fixed inset-0 z-[10000] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-400 preview-glass backdrop-blur-2xl">
+              <style>{`
+                .preview-glass {
+                   background: radial-gradient(circle at 50% -20%, rgba(217,205,235,0.15), rgba(15,15,17,0.95) 60%);
+                }
+                .pdf-wrapper {
+                   width: 794px;
+                   zoom: 1;
+                   -moz-transform-origin: top center;
+                   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                @media (max-width: 1024px) {
+                   .pdf-wrapper { zoom: 0.8; -moz-transform: scale(0.8); }
+                }
+                @media (max-width: 768px) {
+                   .pdf-wrapper { zoom: 0.6; -moz-transform: scale(0.6); }
+                }
+                @media (max-width: 480px) {
+                   .pdf-wrapper { zoom: 0.45; -moz-transform: scale(0.45); }
+                }
+              `}</style>
+
+              {/* Premium Header */}
+              <div className="w-full shrink-0 border-b border-white/5 bg-white/5 p-4 md:px-8 flex justify-between items-center z-50 shadow-sm">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#1a1a1c] border border-white/10 flex items-center justify-center shadow-inner hidden sm:flex">
+                    <LayoutTemplate className="text-[#D9CDEB]" size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-serif text-lg md:text-xl tracking-wide">Estimate Document</h3>
+                    <p className="text-[#8a8a8a] text-[9px] uppercase tracking-[0.2em] font-bold mt-0.5">Live PDF Preview</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 md:gap-4">
+                  <button
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    className="px-4 py-2.5 md:px-6 bg-gradient-to-r from-[#D9CDEB] to-[#F0FDF4] text-[#1a1a1c] hover:opacity-90 rounded-xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(217,205,235,0.2)] hover:shadow-[0_0_30px_rgba(217,205,235,0.4)] active:scale-95 disabled:opacity-50"
+                  >
+                    {downloading ? <Loader2 size={16} className="animate-spin text-[#1a1a1c]" /> : <Download size={16} className="text-[#1a1a1c]" />}
+                    {downloading ? <span className="hidden sm:inline">Rendering...</span> : <span className="hidden sm:inline">Export PDF</span>}
+                  </button>
+                  <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block"></div>
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="p-3 bg-white/5 hover:bg-white/15 text-white/70 hover:text-white rounded-full transition-all border border-white/5 hover:border-white/20 active:scale-95"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Preview Area */}
+              <div className="flex-1 w-full overflow-auto custom-scrollbar p-4 sm:p-8 flex justify-center items-start relative">
+                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none h-40"></div>
+                 <div className="pdf-wrapper shrink-0 mb-20">
+                    <EstimatePreview data={{ clientName, events, timeline, deliverables, deliverablesPrice, discount, extraCharges, total: grandTotal, coverImage }} />
+                 </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>,

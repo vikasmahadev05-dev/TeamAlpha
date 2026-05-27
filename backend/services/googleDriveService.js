@@ -129,13 +129,19 @@ const GoogleDriveService = {
                         fields: 'nextPageToken, files(id, name, mimeType, thumbnailLink, size, createdTime, webViewLink, webContentLink)',
                         orderBy: 'folder,name',
                         pageSize: 1000,
-                        pageToken: pageToken
+                        pageToken: pageToken,
+                        supportsAllDrives: true,
+                        includeItemsFromAllDrives: true
                     });
 
                     const files = response.data.files || [];
                     for (const file of files) {
                         if (file.mimeType === 'application/vnd.google-apps.folder') {
                             foldersToProcess.push(file.id);
+                        } else if (file.mimeType === 'application/vnd.google-apps.shortcut') {
+                            if (file.shortcutDetails && file.shortcutDetails.targetMimeType === 'application/vnd.google-apps.folder') {
+                                foldersToProcess.push(file.shortcutDetails.targetId);
+                            }
                         } else {
                             // Only include images and videos
                             if (file.mimeType.startsWith('image/') || file.mimeType.startsWith('video/')) {

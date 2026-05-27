@@ -6,6 +6,7 @@ const driveGallerySchema = new mongoose.Schema({
   driveFolderId: { type: String, required: false, unique: true, sparse: true },
   passwordHash: { type: String, required: false },
   clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  portfolioEnabled: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { UploadCloud, Loader2, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import API_BASE_URL from '../utils/apiConfig';
 
 const ImageUploadInput = ({ value, onChange, className = "" }) => {
     const { token } = useAuth();
@@ -24,6 +25,10 @@ const ImageUploadInput = ({ value, onChange, className = "" }) => {
             return;
         }
 
+        const localPreviewUrl = URL.createObjectURL(file);
+        // Instantly preview the image
+        onChange(localPreviewUrl);
+
         setUploading(true);
         setError(null);
         setSuccess(false);
@@ -32,8 +37,7 @@ const ImageUploadInput = ({ value, onChange, className = "" }) => {
         formData.append('image', file);
 
         try {
-            const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const response = await fetch(`${BASE_URL}/api/landing-page/upload`, {
+            const response = await fetch(`${API_BASE_URL}/api/landing-page/upload`, {
                 method: 'POST',
                 headers: {
                     'x-auth-token': token
@@ -48,8 +52,7 @@ const ImageUploadInput = ({ value, onChange, className = "" }) => {
 
             const data = await response.json();
             
-            // Call the parent onChange with the new URL
-            // Since we are using Cloudinary, data.url is a full absolute URL.
+            // Call the parent onChange with the new permanent URL
             onChange(data.url);
             setSuccess(true);
             
@@ -60,6 +63,8 @@ const ImageUploadInput = ({ value, onChange, className = "" }) => {
             setError(err.message);
         } finally {
             setUploading(false);
+            // Free memory
+            URL.revokeObjectURL(localPreviewUrl);
             // Reset file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';

@@ -10,6 +10,7 @@ const galleryEventSchema = new mongoose.Schema({
   thumbnail: { type: String, required: false },
   driveFolderId: { type: String, required: true },
   eventDate: { type: Date },
+  portfolioEnabled: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

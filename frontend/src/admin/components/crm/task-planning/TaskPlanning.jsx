@@ -96,7 +96,7 @@ const TaskPlanning = ({ user }) => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={loadTasks}
+            onClick={() => loadTasks(false)}
             disabled={loading}
             className="p-3 text-warmgray hover:text-charcoal hover:bg-white rounded-full border border-transparent hover:border-ivory transition-all shadow-sm group"
             title="Refresh Grid"
@@ -127,7 +127,7 @@ const TaskPlanning = ({ user }) => {
           <GoogleSheetsGrid
             data={filteredData}
             isAdmin={user?.role === "admin"}
-            onRefresh={loadTasks}
+            onRefresh={() => loadTasks(false)}
             activeMonth={month}
             setMonth={setMonth}
           />

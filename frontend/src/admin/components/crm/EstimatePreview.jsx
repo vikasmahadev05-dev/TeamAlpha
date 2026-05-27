@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { numberToIndianWords } from '../../utils/numberToWords';
 import new_logo from "../../../assets/new_logo_original.png";
+import engagementImg from "../../../assets/covers/engagement.png";
 
 const EstimatePreview = forwardRef(({ data }, ref) => {
      // A4 proportions: 794 x 1123 px at 96 DPI
@@ -17,10 +18,12 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
         { deliverable: "Edited Traditional Video", time: "60 days" }
     ];
 
-    const coverImageUrl = data.coverImage || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    // Use the imported engagement image as the universal fallback cover image
+    const isInvalidCover = !data.coverImage || data.coverImage === "/new_logo_origin.png";
+    const coverImageUrl = isInvalidCover ? engagementImg : data.coverImage;
 
     return (
-        <div ref={ref} className="bg-stone-50 p-8 pt-0 flex flex-col gap-12 items-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <div ref={ref} className="bg-transparent p-8 pt-0 flex flex-col gap-12 items-center" style={{ fontFamily: "'Inter', sans-serif" }}>
             
             {/* PAGE 1: REFINED COVER - NO OVERLAPS */}
             <div className={pageStyle + " pdf-page flex flex-col items-center pt-10"}>
@@ -107,10 +110,11 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
                         <h4 className="text-[10px] font-bold tracking-[0.4em] text-stone-400 uppercase mb-8">Service Workflow</h4>
                         <div className="space-y-6 text-[12px] text-stone-600">
                             {[
-                                "Booking confirmation with 50% initial payment.",
-                                "Project briefing & vendor synchronization.",
-                                "High-speed data processing and delivery.",
-                                "Final asset delivery and collection of remaining payment."
+                                "Payment confirmation with 50% advance.",
+                                "Project confirmation with other vendors & finalize deliverables with 25% payment.",
+                                "Shoot day data will be updated on drive & download link will be sent.",
+                                "Selection of photos & videos from client.",
+                                "Delivery of albums & collection of remaining payment."
                             ].map((step, i) => (
                                 <div key={i} className="flex gap-4 items-center">
                                     <span className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-[10px] text-stone-400">{i+1}</span>
@@ -157,7 +161,7 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
                         <tfoot className="bg-[#1A1A1A] text-white">
                             <tr>
                                 <td colSpan="2" className="p-6 font-bold text-sm tracking-widest uppercase">Base Total Investment</td>
-                                <td className="p-6 text-right font-bold text-lg">₹ {eventsTotal.toLocaleString('en-IN')}</td>
+                                <td className="p-6 text-right font-bold text-lg whitespace-nowrap">₹ {eventsTotal.toLocaleString('en-IN')}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -192,39 +196,78 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
                 </div>
             </div>
 
-            {/* PAGE 5: THE FINE PRINT */}
-            <div className={pageStyle + " pdf-page px-20 py-24"}>
-                 <div className="mb-16">
-                   <h3 className="text-3xl font-serif text-stone-900 mb-2">The Fine Print</h3>
-                   <p className="text-[10px] tracking-[0.3em] text-stone-400 uppercase">Terms & Conditions of Service</p>
+            {/* PAGE 5: TERMS & CONDITIONS */}
+            <div className={pageStyle + " pdf-page px-20 py-24 flex flex-col justify-between"}>
+                <div>
+                    <h3 className="text-[18px] font-bold text-[#1A1A1A] uppercase mb-4">TERMS & CONDITIONS</h3>
+                    <p className="text-[13px] font-bold text-red-600 leading-relaxed mb-10 pr-4">
+                        We kindly ask you to review our Terms & Conditions carefully before making an advance payment. By completing the payment, you confirm your understanding and acceptance of these terms, helping us serve you better.
+                    </p>
+
+                    <div className="space-y-6 text-[12px] text-stone-600 leading-relaxed pl-4">
+                        <div className="relative">
+                            <span className="absolute -left-4 top-0 font-bold">•</span>
+                            <span className="font-bold text-[#1A1A1A]">BOOKING CONFIRMATION AND PAYMENTS: </span>
+                            To confirm booking for our photography, videography, and other services, you are requested to pay an advance amount of 50% of the total project cost plus the traveling charges (if any). We follow a strict "first come first serve" policy. Without the advance payment, we cannot guarantee to block specific dates for you. The remaining balance of the total amount can be paid prior to the 1st day of the photo shoot or preferably two days in advance. We accept cash, cheque, and online transfer. We will share the transaction details once you confirm to us your preferred mode of payment.
+                        </div>
+
+                        <div className="relative">
+                            <span className="absolute -left-4 top-0 font-bold">•</span>
+                            <span className="font-bold text-[#1A1A1A]">CANCELLATIONS AND RESCHEDULING: </span>
+                            Client will be responsible for payment of all expenses incurred up to the time of cancellation of the assignment, plus 50 percent of Photographer's fee. However, if notice of cancellation is given less than two (2) business days before the shoot date, the client will be charged a 100% fee. All cancellations must be in writing. Likewise, requests for rescheduling the photo shoot shall be intimated to us well in advance of the initial agreed date. In case of delayed intimation, we may not guarantee booking on your preferred new dates.
+                        </div>
+
+                        <div className="relative">
+                            <span className="absolute -left-4 top-0 font-bold">•</span>
+                            <span className="font-bold text-[#1A1A1A]">DISTURBANCE AT THE EVENT: </span>
+                            you are looking for multiple photographers and videographers, we recommend booking within TEAM ALPHA as we have good rapport with our team members. If there are any other photographers/videographers (who are not a part of TEAM ALPHA), they must be briefed to cooperate with our team members. As candid photography and cinematography concentrates on special moments, subjects and detailing, there are chances that our crew members will appear on other team's camera frames and vice-versa. Any guests or family members behave rudely or threaten the photographers during the event, the situation should be handled by you. We believe to maintain professionalism of high standards and expect the same from all our clients. If there are any unavoidable circumstances, the entire crew will leave the premises with no further photoshoot. There shall also be no refund of any fees.
+                        </div>
+
+                        <div className="relative">
+                            <span className="absolute -left-4 top-0 font-bold">•</span>
+                            <span className="font-bold text-[#1A1A1A]">TRAVELING: </span>
+                            We are a team based in Bengaluru. For any events/venue outside Bengaluru, all the travel expenses and accommodation must be taken care of by the client for the entire crew. If there are any events happening during the late night and the next event is scheduled in the early morning, accommodation must be taken care of by the client for the entire crew. This is applicable for Bengaluru events as well.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* PAGE 6: DATA MANAGEMENT & CONTACT */}
+            <div className={pageStyle + " pdf-page px-20 py-24 flex flex-col justify-between"}>
+                <div>
+                    <h3 className="text-[16px] font-bold text-[#1A1A1A] mb-12 text-center">
+                        Wedding Photography Data Management — Terms & Conditions
+                    </h3>
+
+                    <div className="space-y-8 text-[12px] text-stone-600 leading-relaxed px-2">
+                        <div>
+                            <span className="font-bold text-[#1A1A1A] block mb-1">1. Data Storage & Security</span>
+                            As part of our commitment to delivering a premium experience, all final edited images are stored securely in our professional archive system for a period of 6 months from the date of delivery. We take every precaution to safeguard your wedding memories during this period through multiple redundant backups.
+                        </div>
+
+                        <div>
+                            <span className="font-bold text-[#1A1A1A] block mb-1">2. Client Responsibility</span>
+                            Upon delivery of your final gallery and/or HDD, SSD it becomes the client's responsibility to download, store, and back up their images. We highly recommend saving your photos on multiple devices and cloud services to ensure long-term preservation.
+                        </div>
+
+                        <div>
+                            <span className="font-bold text-[#1A1A1A] block mb-1">3. Limitations of Liability</span>
+                            While we employ best-in-class data management practices, we cannot be held liable for any data loss resulting from circumstances beyond our control (e.g. hardware failure, natural disasters, force majeure) after the guaranteed 6-month storage period.
+                        </div>
+
+                        <div>
+                            <span className="font-bold text-[#1A1A1A] block mb-1">4. Requests for Additional Copies</span>
+                            Should you require an additional copy of your images after the initial delivery and/or after the 6-month storage period, we will do our best to accommodate your request, subject to availability. An additional fee may apply for this service. for any data loss additional fee to made to Recover the data
+                        </div>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-10 text-[11px] text-stone-500 leading-relaxed">
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-stone-900 uppercase tracking-widest text-[10px]">Booking & Payments</h4>
-                        <p>50% advance to secure dates. First-come-first-serve basis. Raw data delivered post full payment settlement.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-stone-900 uppercase tracking-widest text-[10px]">Cancellations</h4>
-                        <p>Client responsible for expenses incurred up to time of cancellation. Cancellation within 2 days of shoot incurs 100% project fee.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-stone-900 uppercase tracking-widest text-[10px]">Crew Safety</h4>
-                        <p>Rude or threatening behavior towards team members results in immediate withdrawal without refund.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-stone-900 uppercase tracking-widest text-[10px]">Travel Logistics</h4>
-                        <p>Travel and hotel expenses for outstation shoots to be covered by the client for the entire crew.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-stone-900 uppercase tracking-widest text-[10px]">Data Management</h4>
-                        <p>Archive stored for 6 months. Client recommended to maintain private backups post-delivery.</p>
-                    </div>
-                </div>
-
-                <div className="absolute bottom-16 left-20 right-20 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-                    <span>Team Alpha Crew</span>
-                    <span>Bengaluru, India</span>
+                {/* Footer */}
+                <div className="text-[11px] text-[#1A1A1A] leading-relaxed mt-auto pb-4">
+                    <span className="font-bold block mb-1">CONTACT US</span>
+                    PHONE NUMBER: +91 9663373953 +91 8296105939<br/>
+                    EMAIL: <span className="text-blue-500 underline">info@teamalphacrew.com</span><br/>
+                    INSTAGRAM: @teamalpha_crew
                 </div>
             </div>
         </div >
